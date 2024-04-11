@@ -4,6 +4,7 @@ import os.path
 from os import environ
 import readline
 from traceback import print_exc
+import datetime
 
 
 parser = argparse.ArgumentParser(
@@ -21,6 +22,12 @@ parser.add_argument(
     "-s", "--script", help="Lets you run a script to edit files automatically."
 )
 
+
+def getreltime():
+    timestamp = os.path.getmtime(filename)
+    final = timestamp
+    
+    return final
 
 def listinsert(list, ins_index, obj):
     llen = len(list)
@@ -89,7 +96,7 @@ def run_cmd(line):
     elif line[0] == "info":
         if not filename == "" and os.path.exists(filename):
             print(
-                f"Last Modified: {os.path.getmtime(filename)}\nSize In Bytes: {os.path.getsize(filename)}"
+                f"Last Modified: {getreltime()}\nSize In Bytes: {os.path.getsize(filename)}"
             )
     else:
         print("Command not recognized!")

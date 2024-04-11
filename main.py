@@ -3,9 +3,11 @@ import argparse
 import os.path
 from os import environ
 import readline
+import configparser
 from traceback import print_exc
 import datetime
 
+defconf = environ["HOME"] + "/.config/safe.ini"
 
 parser = argparse.ArgumentParser(
     prog="SAFE: Slow As F**k Editor",
@@ -16,18 +18,30 @@ parser.add_argument(
     "filename",
     default="",
     nargs="?",
-    help="filename to open, leave blank to create new file",
+    help="Optional file name.",
 )
 parser.add_argument(
     "-s", "--script", help="Lets you run a script to edit files automatically."
 )
+parser.add_argument("-c", "--config", help="Config File to use.", default=defconf)
+args = parser.parse_args()
+
+
+config = configparser.ConfigParser()
+config.read(args.config)
+conf_nf = config['SHELL'].getboolean('NerdFontIcons')
 
 
 def getreltime():
     timestamp = os.path.getmtime(filename)
     final = timestamp
-    
+
     return final
+
+def getbytes(s):
+    s = "\n".join(s)
+    return len(s.encode('utf-8'))
+
 
 def listinsert(list, ins_index, obj):
     llen = len(list)
@@ -42,7 +56,7 @@ def listinsert(list, ins_index, obj):
 
 # to anyone reading this: please make a PR for environment variables for the script functionality im too lazy
 
-args = parser.parse_args()
+
 if args.filename == "":
     buffer = [""]
 elif not os.path.exists(args.filename):
@@ -105,7 +119,7 @@ def run_cmd(line):
 if not args.script:
     while 1:
         try:
-            line = input(f"{savestatus}{filename if filename != '' else 'unnamed'} $ ")
+            line = input(f"{getbytes(buffer)}{savestatus}{filename if filename != '' else 'unnamed'} $ ")
             readline.add_history(line)
             run_cmd(line)
         except KeyboardInterrupt as e:

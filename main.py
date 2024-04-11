@@ -3,6 +3,7 @@ import argparse
 import os.path
 from os import environ
 import readline
+from traceback import print_exc
 
 
 parser = argparse.ArgumentParser(
@@ -104,9 +105,7 @@ if not args.script:
             print('\nCtrl+C pressed, please use "exit" command to quit.')
         except Exception as e:
             if debugmode:
-                import traceback
-
-                traceback.print_exc()
+                print_exc()
             else:
                 print(e)
 

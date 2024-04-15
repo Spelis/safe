@@ -2,10 +2,33 @@ from shlex import split as shlex
 import argparse
 import os.path
 from os import environ
-import readline
+from os import name as osname
+
+if osname == "nt":
+    # windows version of readline
+    import pyreadline
+else:
+    # linux version
+    import readline
 import configparser
 from traceback import print_exc
 import datetime
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import TerminalFormatter
+from pygments.util import ClassNotFound
+
+# plugins import
+import plugins
+
+
+def highlight_code(code, language):
+    try:
+        lexer = get_lexer_by_name(language, stripall=True)
+        formatter = TerminalFormatter()
+        return str(highlight(code, lexer, formatter))[:-1]
+    except ClassNotFound:
+        return code
 
 
 def help(dictionary, key_to_help_with=None):
@@ -118,6 +141,9 @@ filename = args.filename
 savestatus = "  "
 debugmode = False
 var = {}
+lang = ""
+
+
 for name, value in environ.items():
     var[name] = value
 
@@ -126,7 +152,7 @@ readline.set_history_length(100)
 
 def parsevars(line):
     all = list(var.keys())
-    all.reverse()  # reverse is used to make sure that i.e: $TERMINFO doesnt return the value of $TERM.
+    all.reverse()  # reverse() is used to make sure that i.e: $TERMINFO doesnt return the value of $TERM.
     for k in all:
         line = line.replace(f"${k}", var[k])
 
@@ -134,14 +160,16 @@ def parsevars(line):
 
 
 def run_cmd(line):
-    global filename, debugmode, savestatus, var
+    global filename, debugmode, savestatus, var, lang
     line = parsevars(line)
     line = shlex(line)
+    if len(line) < 1:
+        return ""
     line[0] = line[0].lower()
     if line[0] == "edit":
         buffer[int(line[1]) - 1] = line[2]
         savestatus = "* "
-    elif line[0] == "var":
+    elif line[0] == "var":  # might add other variable types but idk what
         if line[1] == "normal":
             var[line[2]] = line[3]
     elif line[0] == "insert":
@@ -155,7 +183,9 @@ def run_cmd(line):
             buffer.pop(int(line[1]))
         savestatus = "* "
     elif line[0] == "cat":
-        for l, i in enumerate(buffer):
+        b = "\n".join(buffer)
+        b = highlight_code(b, lang)
+        for l, i in enumerate(b.split("\n")):
             print(str(l + 1), i)
     elif line[0] == "cls" or line[0] == "clear":
         print("\033c", end="")
@@ -166,6 +196,8 @@ def run_cmd(line):
             with open(filename, "w") as f:
                 f.write("\n".join(buffer))
             savestatus = "  "
+    elif line[0] == "setfiletype":
+        lang = line[1]
     elif line[0] == "help":
         if len(line) > 1:
             s = line[1]
@@ -195,6 +227,10 @@ def run_cmd(line):
                 "info": [
                     ["None"],
                     "Shows some info about the current file if the file has a filename.",
+                ],
+                "setfiletype": [
+                    ["filetype"],
+                    "Sets the filetype to be used with the 'cat' command.",
                 ],
             },
             s,
@@ -230,7 +266,9 @@ if not args.script:
                 f"{getbytes(buffer)}{savestatus}{filename if filename != '' else 'unnamed'} $ "
             )
             readline.add_history(line)
-            run_cmd(line)
+            line = line.split("&&")
+            for l in line:
+                run_cmd(l)
         except KeyboardInterrupt as e:
             print('\nCtrl+C pressed, please use "exit" command to quit.')
         except Exception as e:
@@ -242,6 +280,8 @@ if not args.script:
 else:
     script = open(args.script, "r").read()
     for i in str(script).split("\n"):
-        run_cmd(i)
+        i = i.split("&&")
+        for l in i:
+            run_cmd(l)
     run_cmd("save")
     run_cmd("exit")

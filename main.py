@@ -9,7 +9,7 @@ if osname == "nt":
     import pyreadline
 else:
     # linux version
-    import readline
+    from readline import *
 import configparser
 from traceback import print_exc
 import datetime
@@ -18,8 +18,7 @@ from pygments.lexers import get_lexer_by_name
 from pygments.formatters import TerminalFormatter
 from pygments.util import ClassNotFound
 
-# plugins import
-import plugins
+
 
 
 def highlight_code(code, language):
@@ -47,7 +46,7 @@ def help(dictionary, key_to_help_with=None):
             print(f"No help available for '{key_to_help_with}'.")
 
 
-defconf = environ["HOME"] + "/.config/safe.ini"
+defconf = os.path.expanduser("~/.config/safe.ini")
 
 parser = argparse.ArgumentParser(
     prog="SAFE: Slow As F**k Editor",
@@ -66,10 +65,16 @@ parser.add_argument(
 parser.add_argument("-c", "--config", help="Config File to use.", default=defconf)
 args = parser.parse_args()
 
+aliases = {}
 
-config = configparser.ConfigParser()
-config.read(args.config)
-conf_nf = config["SHELL"].getboolean("NerdFontIcons")
+try:
+    config = configparser.ConfigParser()
+    config.read(args.config)
+    conf_nf = config["SHELL"].getboolean("NerdFontIcons")
+    for k,v in config.items('ALIAS'):
+        aliases[k] = v
+except Exception:
+    pass  # hehe
 
 
 def getreltime():
@@ -126,9 +131,6 @@ def listinsert(list, ins_index, obj):
     return list
 
 
-# to anyone reading this: please make a PR for environment variables for the script functionality im too lazy
-
-
 if args.filename == "":
     buffer = [""]
 elif not os.path.exists(args.filename):
@@ -147,7 +149,8 @@ lang = ""
 for name, value in environ.items():
     var[name] = value
 
-readline.set_history_length(100)
+if osname != "nt":
+    set_history_length(100)
 
 
 def parsevars(line):
@@ -177,10 +180,10 @@ def run_cmd(line):
         savestatus = "* "
     elif line[0] == "delete":
         if len(line) > 2:
-            for i in range(int(line[1]), int(line[2])):
-                buffer.pop(i)
+            for i in range(int(line[2])):
+                buffer.pop(int(line[1]))
         else:
-            buffer.pop(int(line[1]))
+            buffer.pop(int(line[1])-1)
         savestatus = "* "
     elif line[0] == "cat":
         b = "\n".join(buffer)
@@ -219,6 +222,10 @@ def run_cmd(line):
                     ["filename"],
                     "Sets the filename to be used with the save command.",
                 ],
+                "setfiletype": [
+                    ["filetype"],
+                    "Sets the filetype for syntax highlighting",
+                ],
                 "exit": [["None"], "Exits the program (wont save!!!)"],
                 "debug": [
                     ["None"],
@@ -227,10 +234,6 @@ def run_cmd(line):
                 "info": [
                     ["None"],
                     "Shows some info about the current file if the file has a filename.",
-                ],
-                "setfiletype": [
-                    ["filetype"],
-                    "Sets the filetype to be used with the 'cat' command.",
                 ],
             },
             s,
@@ -259,13 +262,19 @@ def run_cmd(line):
         print("Command not recognized!")
 
 
+# plugins import
+import plugins
+
 if not args.script:
     while 1:
         try:
             line = input(
-                f"{getbytes(buffer)}{savestatus}{filename if filename != '' else 'unnamed'} $ "
+                f"{'󰦨' if conf_nf else ''}{getbytes(buffer)}{savestatus}{'' if conf_nf else ''}{filename if filename != '' else 'unnamed'} $ "
             )
-            readline.add_history(line)
+            for k,v in aliases.items():
+                line = line.replace(k,v)
+            if osname != "nt":
+                add_history(line)
             line = line.split("&&")
             for l in line:
                 run_cmd(l)

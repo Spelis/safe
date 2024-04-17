@@ -3,6 +3,7 @@ import argparse
 import os.path
 from os import environ
 from os import name as osname
+from random import randint
 
 if osname == "nt":
     # windows version of readline
@@ -71,6 +72,7 @@ aliases = {}
 config = configparser.ConfigParser()
 config.read(args.config)
 conf_nf = config.getboolean("SHELL","NerdFontIcons",fallback=False)
+conf_cc = config.getboolean("SHELL","CtrlCQuit",fallback=False)
 try:
     for k,v in config.items('ALIAS'):
         aliases[k] = v
@@ -169,15 +171,16 @@ def run_cmd(line):
     line = shlex(line)
     if len(line) < 1:
         return ""
+    line[0] = replace_aliases(line[0],aliases)
     line[0] = line[0].lower()
     if line[0] == "edit":
-        buffer[int(line[1]) - 1] = line[2]
+        buffer[int(line[1]) - 1] = ' '.join(line[2:])
         savestatus = "* "
     elif line[0] == "var":  # might add other variable types but idk what
         if line[1] == "normal":
             var[line[2]] = line[3]
     elif line[0] == "insert":
-        listinsert(buffer, int(line[1]), line[2])
+        listinsert(buffer, int(line[1]), ' '.join(line[2:]))
         savestatus = "* "
     elif line[0] == "delete":
         if len(line) > 2:
@@ -260,11 +263,11 @@ def run_cmd(line):
                 f"Last Modified: {getreltime()}\nSize In Bytes: {os.path.getsize(filename)}"
             )
     else:
-        print("Command not recognized!")
+        print(f"Command {line[0]} not recognized!")
 
 
-# plugins import
-import plugins
+back1 = randint(1,231)
+back2 = back1+3
 
 def color(type,id,text=''):
     if conf_nf:
@@ -275,22 +278,36 @@ def color(type,id,text=''):
     else:
         return ''
     
+def replace_aliases(line, aliases):
+    # Sort aliases by length in descending order to handle substrings correctly
+    sorted_aliases = sorted(aliases.items(), key=lambda item: len(item[0]), reverse=True)
+    
+    for alias, command in sorted_aliases:
+        # Use regex to replace the alias with the command, considering word boundaries
+        # This ensures that only whole words are replaced and not substrings of other words
+        import re
+        line = re.sub(r'\b' + re.escape(alias) + r'\b', command, line)
+    
+    return line
 
+# plugins import
+import plugins
 if not args.script:
     while 1:
         try:
             line = input(
-                f"{color(3,45,'')}{color(3,0)+color(4,45)}{'󰦨 ' if conf_nf else ''}{getbytes(buffer)}{color(3,45)+color(4,36,'')}{color(3,0)+color(4,36)}{savestatus.replace('*','•')}{' ' if conf_nf else ''}{filename if filename != '' else 'unnamed'} {color(0,0)+color(3,36)}{'' if conf_nf else '$'}{color(0,0)} "
+                f"{color(3,back1,'')}{color(3,0)+color(4,back1)}{'󰦨 ' if conf_nf else ''}{getbytes(buffer)}{color(3,back1)+color(4,back2,'')}{color(3,0)+color(4,back2)}{savestatus.replace('*','•')}{' ' if conf_nf else ''}{filename if filename != '' else 'unnamed'} {color(0,0)+color(3,back2)}{'' if conf_nf else '$'}{color(0,0)} "
             )
-            for k,v in aliases.items():
-                line = line.replace(k,v)
             if osname != "nt":
                 add_history(line)
             line = line.split("&&")
             for l in line:
                 run_cmd(l)
         except KeyboardInterrupt as e:
-            print('\nCtrl+C pressed, please use "exit" command to quit.')
+            if not conf_cc:
+                print('\nCtrl+C pressed, please use "exit" command to quit.')
+            else:
+                break
         except Exception as e:
             if debugmode:
                 print_exc()

@@ -67,14 +67,15 @@ args = parser.parse_args()
 
 aliases = {}
 
+
+config = configparser.ConfigParser()
+config.read(args.config)
+conf_nf = config.getboolean("SHELL","NerdFontIcons",fallback=False)
 try:
-    config = configparser.ConfigParser()
-    config.read(args.config)
-    conf_nf = config["SHELL"].getboolean("NerdFontIcons")
     for k,v in config.items('ALIAS'):
         aliases[k] = v
-except Exception:
-    pass  # hehe
+except:
+    pass
 
 
 def getreltime():
@@ -140,7 +141,7 @@ else:
         buffer = str(f.read()).split("\n")
 
 filename = args.filename
-savestatus = "  "
+savestatus = " "
 debugmode = False
 var = {}
 lang = ""
@@ -265,11 +266,21 @@ def run_cmd(line):
 # plugins import
 import plugins
 
+def color(type,id,text=''):
+    if conf_nf:
+        if type == 0:
+            return '\x1b[0m'
+        else:
+            return f'\x1b[{type}8;5;{id}m{text}'
+    else:
+        return ''
+    
+
 if not args.script:
     while 1:
         try:
             line = input(
-                f"{'󰦨' if conf_nf else ''}{getbytes(buffer)}{savestatus}{'' if conf_nf else ''}{filename if filename != '' else 'unnamed'} $ "
+                f"{color(3,45,'')}{color(3,0)+color(4,45)}{'󰦨 ' if conf_nf else ''}{getbytes(buffer)}{color(3,45)+color(4,36,'')}{color(3,0)+color(4,36)}{savestatus.replace('*','•')}{' ' if conf_nf else ''}{filename if filename != '' else 'unnamed'} {color(0,0)+color(3,36)}{'' if conf_nf else '$'}{color(0,0)} "
             )
             for k,v in aliases.items():
                 line = line.replace(k,v)

@@ -24,6 +24,8 @@ the configuration file for safe can be found at ~/.config/safe.ini
 ## SHELL:
 ### Bool: NerdFontIcons:
 enables a different promp along with nerd fonts :)
+### Bool: CtrlCQuit:
+kinda broken, Use Control+C to quit 
 
 ## ALIAS:
 ### String: *any:
@@ -93,3 +95,6 @@ sets an alias for a command with the format: alias_name = underlying_command
 * better command aliases
 * random color in nerd font prompt
 * prints command when not recognized
+
+## v.1.1.4:
+* added ctrl+c config documentation

@@ -1,9 +1,10 @@
 from shlex import split as shlex
 import argparse
 import os.path
-from os import environ
+from os import environ, system
 from os import name as osname
 from random import randint
+from subprocess import check_output
 
 if osname == "nt":
     # windows version of readline
@@ -18,8 +19,6 @@ from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import TerminalFormatter
 from pygments.util import ClassNotFound
-
-
 
 
 def highlight_code(code, language):
@@ -71,10 +70,12 @@ aliases = {}
 
 config = configparser.ConfigParser()
 config.read(args.config)
-conf_nf = config.getboolean("SHELL","NerdFontIcons",fallback=False)
-conf_cc = config.getboolean("SHELL","CtrlCQuit",fallback=False)
+conf_nf = config.getboolean("SHELL", "NerdFontIcons", fallback=False)
+conf_cc = config.getboolean("SHELL", "CtrlCQuit", fallback=False)
+conf_cp = config.getboolean("SHELL", "ColorPrompt", fallback=False)
+conf_cool = config.getboolean("SHELL", "CoolPrompt", fallback=False)
 try:
-    for k,v in config.items('ALIAS'):
+    for k, v in config.items("ALIAS"):
         aliases[k] = v
 except:
     pass
@@ -119,8 +120,24 @@ def getreltime():
 
 
 def getbytes(s):
+    # Join the input string with newline characters
     s = "\n".join(s)
-    return len(s.encode("utf-8"))
+    # Encode the string to bytes and get the length
+    size_in_bytes = len(s.encode("utf-8"))
+
+    # Convert to KB, MB, GB
+    size_in_kb = size_in_bytes / 1024
+    size_in_mb = size_in_kb / 1024
+    size_in_gb = size_in_mb / 1024
+
+    if size_in_gb > 1:
+        return str(round(size_in_gb, 2)) + " GB"
+    elif size_in_mb > 1:
+        return str(round(size_in_mb, 2)) + " MB"
+    elif size_in_kb > 1:
+        return str(round(size_in_kb, 2)) + " KB"
+    else:
+        return str(round(size_in_bytes, 2)) + " Bytes"
 
 
 def listinsert(list, ins_index, obj):
@@ -171,29 +188,41 @@ def run_cmd(line):
     line = shlex(line)
     if len(line) < 1:
         return ""
-    line[0] = replace_aliases(line[0],aliases)
+    line[0] = replace_aliases(line[0], aliases)
     line[0] = line[0].lower()
     if line[0] == "edit":
-        buffer[int(line[1]) - 1] = ' '.join(line[2:])
+        buffer[int(line[1]) - 1] = " ".join(line[2:])
         savestatus = "* "
     elif line[0] == "var":  # might add other variable types but idk what
         if line[1] == "normal":
             var[line[2]] = line[3]
+        if line[1] == "cmd":
+            var[line[2]] = check_output(line[3])
     elif line[0] == "insert":
-        listinsert(buffer, int(line[1]), ' '.join(line[2:]))
+        listinsert(buffer, int(line[1]), " ".join(line[2:]))
         savestatus = "* "
     elif line[0] == "delete":
         if len(line) > 2:
             for i in range(int(line[2])):
                 buffer.pop(int(line[1]))
         else:
-            buffer.pop(int(line[1])-1)
+            buffer.pop(int(line[1]) - 1)
         savestatus = "* "
     elif line[0] == "cat":
-        b = "\n".join(buffer)
+        if len(line) > 1:
+            ln0 = int(line[1]) - 1
+        else:
+            ln0 = 0
+        if len(line) > 2:
+            ln1 = int(line[2])
+        elif len(line) > 1:
+            ln1 = int(line[1])
+        else:
+            ln1 = -1
+        b = "\n".join(buffer[ln0:ln1])
         b = highlight_code(b, lang)
         for l, i in enumerate(b.split("\n")):
-            print(str(l + 1), i)
+            print(str(l + ln0 + 1), i)
     elif line[0] == "cls" or line[0] == "clear":
         print("\033c", end="")
     elif line[0] == "save":
@@ -239,9 +268,12 @@ def run_cmd(line):
                     ["None"],
                     "Shows some info about the current file if the file has a filename.",
                 ],
+                "exec": [["Command"], "Executes a shell command"],
             },
             s,
         )
+    elif line[0] == "exec":
+        system(" ".join(line[1:]))
     elif line[0] == "setfilename":
         filename = line[1]
     elif line[0] == "debug":
@@ -259,44 +291,51 @@ def run_cmd(line):
             exit()
     elif line[0] == "info":
         if not filename == "" and os.path.exists(filename):
-            print(
-                f"Last Modified: {getreltime()}\nSize In Bytes: {os.path.getsize(filename)}"
-            )
-    else:
-        print(f"Command {line[0]} not recognized!")
-
-
-back1 = randint(1,231)
-back2 = back1+3
-
-def color(type,id,text=''):
-    if conf_nf:
-        if type == 0:
-            return '\x1b[0m'
+            print(f"Last Modified: {getreltime()}\nSize: {getbytes(buffer)}")
         else:
-            return f'\x1b[{type}8;5;{id}m{text}'
+            print(f"Size: {getbytes(buffer)}")
     else:
-        return ''
-    
+        print(f"Command '{line[0]}' not recognized!")
+
+
+back1 = randint(1, 231)
+back2 = back1 + 3
+
+
+def color(type, id, text=""):
+    if conf_cp:
+        if type == 0:
+            return "\x1b[0m"
+        else:
+            return f'\x1b[{type if conf_cool else "3"}8;5;{id}m{text if conf_cool and conf_cp else ""}'
+    else:
+        return ""
+
+
 def replace_aliases(line, aliases):
     # Sort aliases by length in descending order to handle substrings correctly
-    sorted_aliases = sorted(aliases.items(), key=lambda item: len(item[0]), reverse=True)
-    
+    sorted_aliases = sorted(
+        aliases.items(), key=lambda item: len(item[0]), reverse=True
+    )
+
     for alias, command in sorted_aliases:
         # Use regex to replace the alias with the command, considering word boundaries
         # This ensures that only whole words are replaced and not substrings of other words
         import re
-        line = re.sub(r'\b' + re.escape(alias) + r'\b', command, line)
-    
+
+        line = re.sub(r"\b" + re.escape(alias) + r"\b", command, line)
+
     return line
+
 
 # plugins import
 import plugins
+
 if not args.script:
     while 1:
         try:
             line = input(
-                f"{color(3,back1,'')}{color(3,0)+color(4,back1)}{'󰦨 ' if conf_nf else ''}{getbytes(buffer)}{color(3,back1)+color(4,back2,'')}{color(3,0)+color(4,back2)}{savestatus.replace('*','•')}{' ' if conf_nf else ''}{filename if filename != '' else 'unnamed'} {color(0,0)+color(3,back2)}{'' if conf_nf else '$'}{color(0,0)} "
+                f"{color(3,back1,'')}{color(3,0)+color(4,back1)}{'󰦨 ' if conf_nf else ''}{getbytes(buffer)}{color(3,back1)+color(4,back2,'')}{color(3,0)+color(4,back2)}{savestatus.replace('*','•')}{' ' if conf_nf else ''}{filename if filename != '' else 'unnamed'} {color(0,0)+color(3,back2,'')}{'' if conf_cool else '$'}{color(0,0)} "
             )
             if osname != "nt":
                 add_history(line)
@@ -315,10 +354,17 @@ if not args.script:
                 print(e)
 
 else:
-    script = open(args.script, "r").read()
-    for i in str(script).split("\n"):
-        i = i.split("&&")
-        for l in i:
-            run_cmd(l)
-    run_cmd("save")
-    run_cmd("exit")
+    try:
+        script = open(args.script, "r").read()
+        debugmode = True
+        for i in str(script).split("\n"):
+            i = i.split("&&")
+            for l in i:
+                run_cmd(l)
+        run_cmd("save")
+        run_cmd("exit")
+    except Exception as e:
+        if debugmode:
+            print_exc()
+        else:
+            print(e)

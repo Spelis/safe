@@ -23,9 +23,13 @@ the configuration file for safe can be found at ~/.config/safe.ini
 
 ## SHELL:
 ### Bool: NerdFontIcons:
-enables a different promp along with nerd fonts :)
+enables nerd fonts
 ### Bool: CtrlCQuit:
 kinda broken, Use Control+C to quit 
+### Bool: CoolPrompt:
+uses nerd font icons to create a cool prompt (requires ColorPrompt setting to be true)
+### Bool: ColorPrompt:
+uses ansi escape codes to put colors in your prompt
 
 ## ALIAS:
 ### String: *any:
@@ -56,6 +60,7 @@ sets an alias for a command with the format: alias_name = underlying_command
 * bare-bones scripting support
 
 ## v.1.0.5:
+* i moved the traceback import
 * *\*cricket noises\**
 
 ## v.1.0.6:
@@ -98,3 +103,14 @@ sets an alias for a command with the format: alias_name = underlying_command
 
 ## v.1.1.4:
 * added ctrl+c config documentation
+
+## v.1.1.5:
+* added exec command (os.system)
+* made NerdFontIcons setting enable only icons
+* added CoolPrompt setting (requires ColorPrompt setting, for cooler prompt with colors)
+* added ColorPrompt setting (for colors)
+* added license (MIT)
+* added filesize in different units
+* added "cmd" variable type
+* added poetry (a friend recommended it)
+* added optional "cat" command index :)

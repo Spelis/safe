@@ -150,16 +150,23 @@ def listinsert(list, ins_index, obj):
         list.insert(ins_index, obj)
     return list
 
+filename = ""
 
-if args.filename == "":
-    buffer = [""]
-elif not os.path.exists(args.filename):
-    buffer = [""]
-else:
-    with open(args.filename, "r") as f:
-        buffer = str(f.read()).split("\n")
+def openfile(fn='',new=False):
+    global filename,buffer
+    filename = fn
+    if fn == "":
+        buffer = [""]
+    elif new == True:
+        buffer = [""]
+    elif not os.path.exists(fn):
+        buffer = [""]
+    else:
+        with open(fn, "r") as f:
+            buffer = str(f.read()).split("\n")
+            
+openfile(args.filename)
 
-filename = args.filename
 savestatus = " "
 debugmode = False
 var = {}
@@ -269,6 +276,8 @@ def run_cmd(line):
                     "Shows some info about the current file if the file has a filename.",
                 ],
                 "exec": [["Command"], "Executes a shell command"],
+                "new": [["Filename (Optional)"],"Creates a new file"],
+                "open": [["Filename"],"Opens a file"]
             },
             s,
         )
@@ -289,6 +298,32 @@ def run_cmd(line):
                 exit()
         else:
             exit()
+    elif line[0] == "new":
+        if len(line) > 1:
+            nm = line[1]
+        else:
+            nm = ''
+        if savestatus == "* ":
+            if (
+                input(
+                    "WARNING! You have unsaved changes. Are you sure you want to create a new file? (y/N)"
+                ).lower()
+                == "y"
+            ):
+                openfile(nm,True)
+        else:
+            openfile(nm,True)
+    elif line[0] == "open":
+        if savestatus == "* ":
+            if (
+                input(
+                    "WARNING! You have unsaved changes. Are you sure you want to open this file? (y/N)"
+                ).lower()
+                == "y"
+            ):
+                openfile(line[1])
+        else:
+            openfile(line[1])
     elif line[0] == "info":
         if not filename == "" and os.path.exists(filename):
             print(f"Last Modified: {getreltime()}\nSize: {getbytes(buffer)}")

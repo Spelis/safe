@@ -1,10 +1,6 @@
 # SAFE: Slow As F\*\*k Editor
 
-A really stupid text editor with a shell like environment to edit files just as if you're in a real shell. which in turn makes text editing really slow or really fast depending on what you use it for, but will be slow to use most of the time
-
-### added syntax highlighting!!! 🥳🥳🥳
----
-syntax highlighting was surprisingly easy to add thanks to Pygments!
+A really stupid text editor with a shell like environment to edit files just as if you're in a real shell. which in turn makes text editing really slow
 
 # requirements:
 ## Pygments:
@@ -114,3 +110,7 @@ sets an alias for a command with the format: alias_name = underlying_command
 * added "cmd" variable type
 * added poetry (a friend recommended it)
 * added optional "cat" command index :)
+
+## v.1.1.6:
+* added "new" command (yes, "new". it creates a new empty file.)
+* added "open" command

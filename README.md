@@ -2,17 +2,19 @@
 
 A really stupid text editor with a shell like environment to edit files just as if you're in a real shell. which in turn makes text editing really slow
 
-# requirements:
-## Pygments:
-`pip install pygments`
-
-## readline:
+# running:
+## prerequisites:
 ### windows:
-___
-`pip install pyreadline`
-### linux (and maybe macos):
-___
-`pip install readline`
+`pip install poetry`
+### arch linux:
+Note, you will need the 'Extra' repository in pacman.
+
+`pacman -S python-poetry`
+### other linux:
+install from package manager; or: `pip install poetry --break-system-packages`
+
+## running:
+`poetry run python main.py`
 
 # config:
 the configuration file for safe can be found at ~/.config/safe.ini
@@ -102,7 +104,7 @@ sets an alias for a command with the format: alias_name = underlying_command
 
 ## v.1.1.5:
 * added exec command (os.system)
-* made NerdFontIcons setting enable only icons
+* made NerdFontIcons setting enable icons only
 * added CoolPrompt setting (requires ColorPrompt setting, for cooler prompt with colors)
 * added ColorPrompt setting (for colors)
 * added license (MIT)
@@ -114,3 +116,8 @@ sets an alias for a command with the format: alias_name = underlying_command
 ## v.1.1.6:
 * added "new" command (yes, "new". it creates a new empty file.)
 * added "open" command
+
+## v.1.1.7:
+* added "ls" command (lists directory with optional path :) )
+* made the ColorPrompt only use colors 1-15 :) (works better with terminal color themes along with pywal and similar)
+* fixed cat command??

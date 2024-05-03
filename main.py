@@ -1,7 +1,7 @@
 from shlex import split as shlex
 import argparse
 import os.path
-from os import environ, system
+from os import environ, system, listdir
 from os import name as osname
 from random import randint
 from subprocess import check_output
@@ -19,6 +19,7 @@ from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import TerminalFormatter
 from pygments.util import ClassNotFound
+import re
 
 
 def highlight_code(code, language):
@@ -225,7 +226,7 @@ def run_cmd(line):
         elif len(line) > 1:
             ln1 = int(line[1])
         else:
-            ln1 = -1
+            ln1 = len(buffer)
         b = "\n".join(buffer[ln0:ln1])
         b = highlight_code(b, lang)
         for l, i in enumerate(b.split("\n")):
@@ -277,7 +278,8 @@ def run_cmd(line):
                 ],
                 "exec": [["Command"], "Executes a shell command"],
                 "new": [["Filename (Optional)"],"Creates a new file"],
-                "open": [["Filename"],"Opens a file"]
+                "open": [["Filename"],"Opens a file"],
+                "ls": [["Path (Optional)"],"Lists a directory (default is current directory"]
             },
             s,
         )
@@ -324,6 +326,19 @@ def run_cmd(line):
                 openfile(line[1])
         else:
             openfile(line[1])
+    elif line[0] == "ls":
+        if len(line) > 1:
+            path = line[1]
+        else:
+            path = None
+        for i, v in enumerate(listdir(path)):
+            fp = os.path.join(path if path is not None else '', v)
+            if i % 6 == 5:
+                print('')
+                print(('\x1b[32m' if os.path.isdir(fp) else '') + v + ("/" if os.path.isdir(fp) else "") + '\x1b[0m ', end='')
+            else:
+                print(('\x1b[32m' if os.path.isdir(fp) else '') + v + ("/" if os.path.isdir(fp) else "") + '\x1b[0m ', end='')
+        print('')
     elif line[0] == "info":
         if not filename == "" and os.path.exists(filename):
             print(f"Last Modified: {getreltime()}\nSize: {getbytes(buffer)}")
@@ -333,7 +348,7 @@ def run_cmd(line):
         print(f"Command '{line[0]}' not recognized!")
 
 
-back1 = randint(1, 231)
+back1 = randint(1, 12)
 back2 = back1 + 3
 
 
@@ -356,7 +371,6 @@ def replace_aliases(line, aliases):
     for alias, command in sorted_aliases:
         # Use regex to replace the alias with the command, considering word boundaries
         # This ensures that only whole words are replaced and not substrings of other words
-        import re
 
         line = re.sub(r"\b" + re.escape(alias) + r"\b", command, line)
 

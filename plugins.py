@@ -12,3 +12,4 @@ def use(plugin_name):                            #
 # -----------------------------------------------#
 
 #* example for importing a plugin: random = use('random')
+# also i dont think this works

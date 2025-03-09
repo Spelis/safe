@@ -36,7 +36,7 @@ def help(dictionary, key_to_help_with=None):
     if key_to_help_with is None:
         # If no specific key is provided, print help for all keys
         for key, value in dictionary.items():
-            print(f"{key}:\n {str(value[0])}\n {str(value[1])}")
+            print(f"{key}:\n {str(", ".join(value[0]))}\n {str(value[1])}")
     else:
         # If a specific key is provided, print help for that key
         if key_to_help_with in dictionary:
@@ -249,37 +249,37 @@ def run_cmd(line):
             s = None
         help(
             {
-                "insert": [["index", "string"], "Inserts a string at a line index."],
-                "edit": [["index", "string"], "Replaces a specific line by index."],
+                "insert": [["index: int", "string: str"], "Inserts a string at a line index."],
+                "edit": [["index: int", "string: str"], "Replaces a specific line by index."],
                 "delete": [
-                    ["pos1", "(optional) pos2"],
+                    ["pos1: int", "pos2: Optional|int"],
                     "Deletes a line or a range of lines from pos1 to pos2.",
                 ],
-                "cat": [["None"], "Prints out the current buffer."],
-                "cls": [["None"], "Clears the screen."],
-                "clear": [["None"], "Clears the screen."],
-                "save": [["None"], "Saves the file with the current filename."],
+                "cat": [[], "Prints out the current buffer."],
+                "cls": [[], "Clears the screen."],
+                "clear": [[], "Clears the screen."],
+                "save": [[], "Saves the file with the current filename."],
                 "setfilename": [
-                    ["filename"],
+                    ["filename: str"],
                     "Sets the filename to be used with the save command.",
                 ],
                 "setfiletype": [
-                    ["filetype"],
+                    ["filetype: str"],
                     "Sets the filetype for syntax highlighting",
                 ],
-                "exit": [["None"], "Exits the program (wont save!!!)"],
+                "exit": [[], "Exits the program (wont save!!!)"],
                 "debug": [
-                    ["None"],
+                    [],
                     "Toggles debug mode (print full python tracebacks).",
                 ],
                 "info": [
-                    ["None"],
+                    [],
                     "Shows some info about the current file if the file has a filename.",
                 ],
-                "exec": [["Command"], "Executes a shell command"],
-                "new": [["Filename (Optional)"],"Creates a new file"],
-                "open": [["Filename"],"Opens a file"],
-                "ls": [["Path (Optional)"],"Lists a directory (default is current directory"]
+                "exec": [["command: str"], "Executes a shell command"],
+                "new": [["?filename: str"],"Creates a new file"],
+                "open": [["filename: str"],"Opens a file"],
+                "ls": [["?path: str"],"Lists a directory (default is current directory"]
             },
             s,
         )

@@ -1,2 +1,6 @@
 poetry.lock
 __pycache__
+.vscode
+.idea
+.venv
+safe

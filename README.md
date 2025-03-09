@@ -3,18 +3,10 @@
 A really stupid text editor with a shell like environment to edit files just as if you're in a real shell. which in turn makes text editing really slow
 
 # running:
-## prerequisites:
-### windows:
-`pip install poetry`
-### arch linux:
-Note, you will need the 'Extra' repository in pacman.
-
-`pacman -S python-poetry`
-### other linux:
-install from package manager; or: `pip install poetry --break-system-packages`
-
-## running:
-`poetry run python main.py`
+* run `python -m venv .venv` to create a virtual environment
+* run `source .venv/bin/activate` to activate the virtual environment
+* run `pip install -r requirements.txt` to install the required packages
+* run `python main.py` to start the editor
 
 # config:
 the configuration file for safe can be found at ~/.config/safe.ini
@@ -121,3 +113,9 @@ sets an alias for a command with the format: alias_name = underlying_command
 * added "ls" command (lists directory with optional path :) )
 * made the ColorPrompt only use colors 1-15 :) (works better with terminal color themes along with pywal and similar)
 * fixed cat command??
+
+## v.1.1.8:
+* made the help command better
+* removed poetry cause its shit
+* also this is the first commit in 11 months
+* might also stop making commits align with version numbers

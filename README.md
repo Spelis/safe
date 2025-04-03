@@ -8,24 +8,16 @@ A really stupid text editor with a shell like environment to edit files just as 
 * run `pip install -r requirements.txt` to install the required packages
 * run `python main.py` to start the editor
 
-# config:
-the configuration file for safe can be found at ~/.config/safe.ini
-
-## SHELL:
-### Bool: NerdFontIcons:
-enables nerd fonts
-### Bool: CtrlCQuit:
-kinda broken, Use Control+C to quit 
-### Bool: CoolPrompt:
-uses nerd font icons to create a cool prompt (requires ColorPrompt setting to be true)
-### Bool: ColorPrompt:
-uses ansi escape codes to put colors in your prompt
-
-## ALIAS:
-### String: *any:
-sets an alias for a command with the format: alias_name = underlying_command
-
 # changelog
+
+## v.2.0.0
+* rewritten mostly from scratch.
+* actually extensible
+* multiple buffers!
+* and more idk i got hyper focused and didnt pay attention to what i added
+
+
+# legacy changelog
 
 ## v.1.0.1:
 * edit,insert,cat,clear commands added

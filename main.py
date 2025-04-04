@@ -1,16 +1,17 @@
 import argparse
 import os.path
+from difflib import get_close_matches
 from os import environ, listdir
 from os import name as osname
 from os import system
 from random import randint
 from shlex import split as shlex
-from difflib import get_close_matches
 
 if osname == "nt":
     import pyreadline  # windows version of readline
 else:
     from readline import *  # linux version
+
 import importlib.util
 import sys
 from string import Template
@@ -51,25 +52,27 @@ if len(args.filename) == 0:
     func.curbuf = "New File"
 
 if osname != "nt":
-    set_history_length(100)
-    
-import config # run config file here
+    pyreadline.set_history_length(100)
+
+import config  # run config file here
 
 if not args.script:
     while 1:
         try:
-            promptvars = { # redefine every time the prompt reappears.
+            promptvars = {  # redefine every time the prompt reappears.
                 "bytes": func.getbytes(func.buffer().buffer),
                 "filename": func.buffer().filename,
-                "savestatus": "" if func.buffer().saved else "* "
+                "savestatus": "" if func.buffer().saved else "* ",
             }
-            line = input(Template(func.prompt).safe_substitute(promptvars)) # use a template here
-            if not line: # line is empty
+            line = input(
+                Template(func.prompt).safe_substitute(promptvars)
+            )  # use a template here
+            if not line:  # line is empty
                 continue
             if line.startswith("#"):
                 continue  # is comment
             if osname != "nt":
-                add_history(line)
+                pyreadline.add_history(line)
             raw = line
             arg = shlex(line, True)  # comments cause why not
             command = arg.pop(0)
@@ -77,7 +80,9 @@ if not args.script:
                 call: func.FnMeta = func.commands[command]
             except KeyError as e:
                 try:
-                    print(f"command '{command}' doesnt exist. did you mean {get_close_matches(command,list(func.commands.keys()),1)[0]}?")
+                    print(
+                        f"command '{command}' doesnt exist. did you mean {get_close_matches(command,list(func.commands.keys()),1)[0]}?"
+                    )
                 except:
                     print(f"command '{command}' doesnt exist")
                 continue

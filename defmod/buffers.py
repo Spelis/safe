@@ -1,24 +1,26 @@
+from copy import copy
 import sys
 
 import func
 
 
 @func.command
-def open(filename: str):
+def openfile(filename: str):
     """Open a file in current tab"""
     func.openfile(filename)
 
 
 @func.command
-def new(filename: str):
+def newfile(filename: str):
     """Create a new tab and file"""
     func.openfile(filename, True)
-    
+
+
 @func.command
-def save(filename:str=None):
-    """Save the current file, optionally provide a filename to \"save as\""""
+def savefile(filename: str = None):
+    """Save the current file, optionally provide a filename to \"save as\" """
     buf = func.buffer()
-    with open(buf.filename,"w") as f:
+    with open(buf.filename, "w") as f:
         f.write("\n".join(buf.buffer))
     print("Saved!")
 
@@ -31,12 +33,25 @@ def switchbuf(filename: str):
     else:
         print("Buffer doesn't exist.")
         print(f"Buffers: {list(func.buffers.keys())}")
-        
+
+
 @func.command
 def listbuf():
     """List all buffers"""
-    for k,v in func.buffers.items():
+    for k, v in func.buffers.items():
         print(f"{k}: {len(v.buffer)} lines")
+        
+@func.command
+def renamebuf(filename:str):
+    """Rename the current buffer"""
+    buf:func.FileObject = copy(func.buffer())
+    buf.filename = filename
+    buf.saved = False
+    buf.unnamed = False
+    del func.buffers[func.curbuf]
+    func.buffers[filename] = buf
+    func.curbuf = filename
+    
 
 
 @func.command
@@ -46,7 +61,7 @@ def close():
     if func.buffers == {}:
         exit()
     else:
-        func.curbuf = list(func.buffers.keys())[0] # first buffer in the buffer list
+        func.curbuf = list(func.buffers.keys())[0]  # first buffer in the buffer list
 
 
 @func.command
@@ -56,11 +71,11 @@ def exit():
 
 
 @func.command
-def cat(line: int = 0, line2: int = None):
+def cat(line: int = 1, line2: int = 0):
     """Print out file contents, optionally in a range or just a single line"""
     buf: func.FileObject = func.buffer()
-    ln0 = line-1
-    ln1 = len(buf.buffer) if line2 is None else line2
+    ln0 = line - 1
+    ln1 = len(buf.buffer) if line2 == 0 else line2
     b = "\n".join(buf.buffer[ln0:ln1])
     b = func.highlight_code(b, buf.filename)
     for l, i in enumerate(b.split("\n")):
@@ -71,7 +86,7 @@ def cat(line: int = 0, line2: int = None):
 def edit(line: int, value: str):
     """Edit a line"""
     buf = func.buffer()
-    buf.buffer[line-1] = value
+    buf.buffer[line - 1] = value
     buf.saved = False
 
 

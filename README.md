@@ -10,11 +10,15 @@ A really stupid text editor with a shell like environment to edit files just as 
 
 # changelog
 
-## v.2.0.0
+## v.2.0.0 - Big update and rewrite
 * rewritten mostly from scratch.
 * actually extensible
 * multiple buffers!
 * and more idk i got hyper focused and didnt pay attention to what i added
+
+## v.2.0.1 - Small update
+* formatted stuff with `black` and `isort`
+* fixed some stuff that wasnt working, like the cat command and save command.
 
 
 # legacy changelog

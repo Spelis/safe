@@ -3,6 +3,7 @@ import functools
 import inspect
 import os
 from ast import literal_eval as literal_eval
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 from pygments import highlight
@@ -24,6 +25,7 @@ class FileObject:
         self.language = ""
         self.unnamed = False
 
+
 errorbuffer = FileObject("NullFile")
 
 
@@ -40,6 +42,8 @@ class FnMeta:
         self.func = func
         self.name = func.__name__
         self.help = getattr(func, "__doc__", "No help provided.")
+        self.line = inspect.getsourcelines(func)[-1]
+        self.file = Path(*Path(inspect.getsourcefile(func)).parts[-2:])
 
         sig = inspect.signature(func)
         self.args = [param.name for param in sig.parameters.values()]
@@ -122,6 +126,7 @@ def getbytes(s):
     else:
         return str(round(size_in_bytes, 2)) + " Bytes"
 
+
 def openfile(fn="", new=False):
     global buffer, curbuf
     curbuf = fn
@@ -152,11 +157,13 @@ def highlight_code(code, filename):
         return str(highlight(code, lexer, formatter))[:-1]
     except ClassNotFound:
         return code
-    
+
+
 class ConfigClass:
-    def exec(self,command,*args,**kwargs):
-        commands[command](*args,**kwargs)
-        
+    def exec(self, command, *args, **kwargs):
+        commands[command](*args, **kwargs)
+
+
 config = ConfigClass()
 
 

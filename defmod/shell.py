@@ -1,3 +1,4 @@
+import completiontypes as ct
 import func
 
 
@@ -8,6 +9,7 @@ def clear():
 
 
 @func.command
-def alias(name: str, command: str):
+def alias(name: str, command: ct.Command):
     """Alias a command"""
     func.commands[name] = func.commands[command]
+    func.commands[name].name = name

@@ -53,6 +53,8 @@ if len(args.filename) == 0:
 
 if osname != "nt":
     set_history_length(100)
+    set_completer(func.inputcompleter)
+    parse_and_bind("tab: complete")
 
 import config  # run config file here
 

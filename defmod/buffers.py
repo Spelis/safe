@@ -1,11 +1,13 @@
-from copy import copy
+import os
 import sys
+from copy import copy
 
+import completiontypes as ct
 import func
 
 
 @func.command
-def openfile(filename: str):
+def openfile(filename: ct.File):
     """Open a file in current tab"""
     func.openfile(filename)
 
@@ -26,7 +28,7 @@ def savefile(filename: str = None):
 
 
 @func.command
-def switchbuf(filename: str):
+def switchbuf(filename: ct.Buffer):
     """Switch buffers"""
     if filename in func.buffers.keys():
         func.curbuf = filename
@@ -40,18 +42,18 @@ def listbuf():
     """List all buffers"""
     for k, v in func.buffers.items():
         print(f"{k}: {len(v.buffer)} lines")
-        
+
+
 @func.command
-def renamebuf(filename:str):
+def renamebuf(filename: ct.File):
     """Rename the current buffer"""
-    buf:func.FileObject = copy(func.buffer())
+    buf: func.FileObject = copy(func.buffer())
     buf.filename = filename
     buf.saved = False
     buf.unnamed = False
     del func.buffers[func.curbuf]
     func.buffers[filename] = buf
     func.curbuf = filename
-    
 
 
 @func.command
@@ -71,19 +73,23 @@ def exit():
 
 
 @func.command
-def cat(line: int = 1, line2: int = 0):
+def cat(line: ct.LineNumber = 1, line2: ct.LineNumber = 0):
     """Print out file contents, optionally in a range or just a single line"""
     buf: func.FileObject = func.buffer()
     ln0 = line - 1
     ln1 = len(buf.buffer) if line2 == 0 else line2
     b = "\n".join(buf.buffer[ln0:ln1])
     b = func.highlight_code(b, buf.filename)
-    for l, i in enumerate(b.split("\n")):
-        print(str(l + ln0 + 1), i)
+    b = b.split("\n")
+    if len(buf.buffer) > len(b):
+        for i in range(len(b), len(buf.buffer)):
+            b.insert(i, "")
+    for l, i in enumerate(b):
+        print(str(l + ln0 + 1) + " " * (len(str(len(buf.buffer))) - 1), i)
 
 
 @func.command
-def edit(line: int, value: str):
+def edit(line: ct.LineNumber, value: str):
     """Edit a line"""
     buf = func.buffer()
     buf.buffer[line - 1] = value
@@ -91,7 +97,7 @@ def edit(line: int, value: str):
 
 
 @func.command
-def insert(line: int, value: str):
+def insert(line: ct.LineNumber, value: str = ""):
     """Insert text at line"""
     buf = func.buffer()
     if line > len(buf.buffer):
@@ -102,7 +108,7 @@ def insert(line: int, value: str):
 
 
 @func.command
-def delete(line: int, times: int = 1):
+def delete(line: ct.LineNumber, times: ct.LineNumber = 1):
     """Delete lines"""
     for _ in range(times):
         func.buffer().buffer.pop(line - 1)

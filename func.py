@@ -1,15 +1,21 @@
 import datetime
+import difflib
 import functools
 import inspect
 import os
+import readline
 from ast import literal_eval as literal_eval
 from pathlib import Path
+from shlex import split as shlex
+from traceback import print_exc
 from typing import Any, Dict, Optional
 
 from pygments import highlight
 from pygments.formatters import TerminalFormatter
 from pygments.lexers import get_lexer_for_filename
 from pygments.util import ClassNotFound
+
+import completiontypes as ct
 
 global commands, buffers, curbuf
 commands = {}
@@ -66,6 +72,65 @@ def command(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def r_listdir(dir):
+    """Recurive Directory Listing"""
+    o = []
+    for i in os.listdir(dir):
+        if os.path.isdir(os.path.join(dir, i)):
+            o.extend(reversed(r_listdir(os.path.join(dir, i))))
+        else:
+            o.append(os.path.join(dir, i))
+    return sorted(o, key=len, reverse=True)
+
+
+def inputcompleter(text: str, state: int):
+    matches = []
+    full = readline.get_line_buffer()
+    try:
+        parsed = shlex(full)
+    except:
+        parsed = shlex(full + '"')
+    arg = full.count(" ") - 1
+    if len(parsed) == 0:
+        parsed.append("")
+    cmd = parsed[0]
+    parsed = parsed[-1]
+    if state == 0:
+        if arg == -1:
+            matches = [cmd for cmd in list(commands.keys()) if cmd.startswith(text)]
+            # matches.extend(difflib.get_close_matches(text,list(commands.keys()),n=len(commands.keys())))
+        if cmd in commands.keys():
+            if arg >= 0 and arg <= len(commands[cmd].args):
+                atype = commands[cmd].annotations[commands[cmd].args[arg]]
+                if atype == ct.Command:
+                    matches = [
+                        (f'"{cmd}"' if " " in cmd else f"{cmd}")
+                        for cmd in list(commands.keys())
+                        if cmd.startswith(text)
+                    ]
+                elif atype == ct.Buffer:
+                    matches = [
+                        (f'"{buf}"' if " " in buf else f"{buf}")
+                        for buf in list(buffers.keys())
+                        if buf.startswith(text)
+                    ]
+                elif atype == ct.File:
+                    matches = list(
+                        str(Path(file).relative_to(os.getcwd()))
+                        for file in r_listdir(os.getcwd())
+                        if str(Path(file).relative_to(os.getcwd())).startswith(text)
+                    )
+                elif atype == ct.Code:
+                    matches = [f'"{text}"']
+
+    matches = list(set(matches))  # remove duplicates
+    try:
+        return matches[state]
+    except Exception as e:
+        # print_exc()
+        return None
 
 
 def getreltime(filename):

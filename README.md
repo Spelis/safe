@@ -10,30 +10,35 @@ A really stupid text editor with a shell like environment to edit files just as 
 
 # changelog
 
-## v.2.0.0 - Big update and rewrite
+## v2.0.0 - Big update and rewrite
 * rewritten mostly from scratch.
 * actually extensible
 * multiple buffers!
 * and more idk i got hyper focused and didnt pay attention to what i added
 
-## v.2.0.1 - Small update
+## v2.0.1 - Small update
 * formatted stuff with `black` and `isort`
 * fixed some stuff that wasnt working, like the cat command and save command.
+
+## v2.0.2 - Semi-Small update
+* more formatting
+* added custom auto complete
+* made cat command show all lines (before it stripped any empty lines after the last line with content)
 
 
 # legacy changelog
 
-## v.1.0.1:
+## v1.0.1:
 * edit,insert,cat,clear commands added
 * file opening
 * shell like split with `shlex`
 
-## v.1.0.2:
+## v1.0.2:
 * saving, save command
 * save status in prompt
 * better prompt
 
-## v.1.0.3:
+## v1.0.3:
 * debug mode, debug command
 * delete command
 * filename setting, setfilename command
@@ -42,55 +47,55 @@ A really stupid text editor with a shell like environment to edit files just as 
 * debug mode exception printing
 * added readline module (history, along with other useful things for python inputs)
 
-## v.1.0.4:
+## v1.0.4:
 * bare-bones scripting support
 
-## v.1.0.5:
+## v1.0.5:
 * i moved the traceback import
 * *\*cricket noises\**
 
-## v.1.0.6:
+## v1.0.6:
 * planned relative timestamp
 * *\*cricket noises\**
 
-## v.1.0.7:
+## v1.0.7:
 * added config file
 * added filesize
 
-## v.1.0.8:
+## v1.0.8:
 * help command
-* relative timestamp added from v.1.0.6
+* relative timestamp added from v1.0.6
 * environment variables, variables
 * exit warning if unsaved changes
 
-## v.1.0.9:
+## v1.0.9:
 * removed help from readme file :)
 
-## v.1.1.0:
+## v1.1.0:
 * *slight* windows support
 * syntax highlighting 🥳🥳🥳
 * slight plugin support?
 * setfiletype command
 * multicommand support (&& to split commands.)
 
-## v.1.1.1:
+## v1.1.1:
 * better windows support
 * command aliases (they didnt work well)
-* nerd font support (v.1.0.7 planning)
+* nerd font support (v1.0.7 planning)
 
-## v.1.1.2:
+## v1.1.2:
 * nerd fonts support is kinda also colored prompt as well?
 
-## v.1.1.3:
+## v1.1.3:
 * ^C (ctrl+c) to quit (config file)
 * better command aliases
 * random color in nerd font prompt
 * prints command when not recognized
 
-## v.1.1.4:
+## v1.1.4:
 * added ctrl+c config documentation
 
-## v.1.1.5:
+## v1.1.5:
 * added exec command (os.system)
 * made NerdFontIcons setting enable icons only
 * added CoolPrompt setting (requires ColorPrompt setting, for cooler prompt with colors)
@@ -101,16 +106,16 @@ A really stupid text editor with a shell like environment to edit files just as 
 * added poetry (a friend recommended it)
 * added optional "cat" command index :)
 
-## v.1.1.6:
+## v1.1.6:
 * added "new" command (yes, "new". it creates a new empty file.)
 * added "open" command
 
-## v.1.1.7:
+## v1.1.7:
 * added "ls" command (lists directory with optional path :) )
 * made the ColorPrompt only use colors 1-15 :) (works better with terminal color themes along with pywal and similar)
 * fixed cat command??
 
-## v.1.1.8:
+## v1.1.8:
 * made the help command better
 * removed poetry cause its shit
 * also this is the first commit in 11 months

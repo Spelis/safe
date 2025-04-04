@@ -1,10 +1,11 @@
 from difflib import get_close_matches
 
+import completiontypes as ct
 import func
 
 
 @func.command
-def help(command: str = ""):
+def help(command: ct.Command = ""):
     """Help command. shows this message"""
     if not command:
         for i in func.commands.values():
@@ -24,3 +25,8 @@ def help(command: str = ""):
                 )
             except:
                 print(f"command '{command}' doesnt exist")
+
+
+# @func.command
+# def loadplugin(filename: ct.File):
+#    pass

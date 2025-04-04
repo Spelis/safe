@@ -52,7 +52,7 @@ if len(args.filename) == 0:
     func.curbuf = "New File"
 
 if osname != "nt":
-    pyreadline.set_history_length(100)
+    set_history_length(100)
 
 import config  # run config file here
 
@@ -72,7 +72,7 @@ if not args.script:
             if line.startswith("#"):
                 continue  # is comment
             if osname != "nt":
-                pyreadline.add_history(line)
+                add_history(line)
             raw = line
             arg = shlex(line, True)  # comments cause why not
             command = arg.pop(0)

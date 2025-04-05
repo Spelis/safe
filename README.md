@@ -24,6 +24,7 @@ A really stupid text editor with a shell like environment to edit files just as 
 * more formatting
 * added custom auto complete
 * made cat command show all lines (before it stripped any empty lines after the last line with content)
+* made the program not immediately throw an error on older versions of python. tested on py3.9.21
 
 
 # legacy changelog

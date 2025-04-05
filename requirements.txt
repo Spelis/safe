@@ -1,2 +1,4 @@
 Pygments
 pyreadline
+black
+isort

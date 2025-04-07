@@ -30,6 +30,7 @@ for i in os.listdir(f"{scriptdir}/defmod/"):
     sys.modules[i.split(".")[0]] = m
     spec.loader.exec_module(m)
     globals().update(m.__dict__)  # import * from ...
+    func.modules.append(m)
 
 ap = argparse.ArgumentParser("SAFE: Slow as f**k editor")
 
@@ -53,10 +54,37 @@ if len(args.filename) == 0:
 
 if osname != "nt":
     set_history_length(100)
-    set_completer(func.inputcompleter)
+    comp = func.InputCompleter()
+    set_completer(comp.completer)
     parse_and_bind("tab: complete")
 
 import config  # run config file here
+
+
+def run_cmd(line):
+    raw = line
+    arg = shlex(line, True)  # comments cause why not
+    command = arg.pop(0)
+    try:
+        call: func.FnMeta = func.commands[command]
+    except KeyError as e:
+        try:
+            print(
+                f"command '{command}' doesnt exist. did you mean {get_close_matches(command,list(func.commands.keys()),1)[0]}?"
+            )
+        except:
+            print(f"command '{command}' doesnt exist")
+        return
+    positionals = [item for item in arg if "=" not in item]
+    for i in range(len(positionals)):
+        positionals[i] = list(call.annotations.values())[i](positionals[i])
+    keywords = {pair.split("=")[0]: pair.split("=")[1] for pair in arg if "=" in pair}
+    for k, v in keywords:
+        keywords[k] = call.annotations[k](v)
+    if func.debug:
+        print(call.meta())
+    call(*positionals, **keywords)
+
 
 if not args.script:
     while 1:
@@ -65,7 +93,9 @@ if not args.script:
                 "bytes": func.getbytes(func.buffer().buffer),
                 "filename": func.buffer().filename,
                 "savestatus": "" if func.buffer().saved else "* ",
+                "lastsaved": func.getreltime(func.buffer().filename)
             }
+            func.extendpromptvars(promptvars)  # load promptvars from other plugins
             line = input(
                 Template(func.prompt).safe_substitute(promptvars)
             )  # use a template here
@@ -75,29 +105,23 @@ if not args.script:
                 continue  # is comment
             if osname != "nt":
                 add_history(line)
-            raw = line
-            arg = shlex(line, True)  # comments cause why not
-            command = arg.pop(0)
-            try:
-                call: func.FnMeta = func.commands[command]
-            except KeyError as e:
-                try:
-                    print(
-                        f"command '{command}' doesnt exist. did you mean {get_close_matches(command,list(func.commands.keys()),1)[0]}?"
-                    )
-                except:
-                    print(f"command '{command}' doesnt exist")
-                continue
-            positionals = [item for item in arg if "=" not in item]
-            for i in range(len(positionals)):
-                positionals[i] = list(call.annotations.values())[i](positionals[i])
-            keywords = {
-                pair.split("=")[0]: pair.split("=")[1] for pair in arg if "=" in pair
-            }
-            for k, v in keywords:
-                keywords[k] = call.annotations[k](v)
-            call(*positionals, **keywords)
+            run_cmd(line)
         except KeyboardInterrupt:
             print("please use the 'exit' command to quit.")
         except Exception as e:
             print_exc()
+else:
+    debug = True  # debug enabled by default for scripts
+    for i in args.filename:
+        try:
+            with open(i) as f:
+                script = f.read()
+                run_cmd(f"newfile {i}")
+                for i in str(script).split("\n"):
+                    i = i.split(";")
+                    for l in i:
+                        run_cmd(l)
+                run_cmd("save")
+                run_cmd("close")
+        except:
+            continue

@@ -20,11 +20,23 @@ A really stupid text editor with a shell like environment to edit files just as 
 * formatted stuff with `black` and `isort`
 * fixed some stuff that wasnt working, like the cat command and save command.
 
-## v2.0.2 - Semi-Small update
+## v2.0.2 - Small update (autocomplete update)
 * more formatting
 * added custom auto complete
 * made cat command show all lines (before it stripped any empty lines after the last line with content)
 * made the program not immediately throw an error on older versions of python. tested on py3.9.21
+
+## v2.1.0 - Pretty big update (plugin update)
+* Added back scripts (they're pretty useless not gonna lie)
+
+    1. make file and start editing (maybe in safe ;) )
+    2. put commands in like you would in the interactive editor
+    3. run safe with the -s or --script attribute along with all the scripts you want to run
+    4. enjoy
+
+* Enhanced plugin support
+* Added example plugins: Kanban and a template
+* `ls` command (woah, revolutionary!)
 
 
 # legacy changelog

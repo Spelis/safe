@@ -21,6 +21,8 @@ global commands, buffers, curbuf
 commands = {}
 buffers = {}
 curbuf = ""
+modules = []
+debug = False
 
 
 class FileObject:
@@ -30,6 +32,15 @@ class FileObject:
         self.saved = True
         self.language = ""
         self.unnamed = False
+
+
+class AttrDict:
+    def __init__(self, obj):
+        for k, v in obj.items():
+            setattr(self, k, v)
+
+    def __repr__(self):
+        return str(self.__dict__)
 
 
 errorbuffer = FileObject("NullFile")
@@ -62,16 +73,45 @@ class FnMeta:
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
+    def meta(self):
+        s = []
+        for name, annotation in self.annotations.items():
+            s.append(f"{name}: {annotation.__qualname__}")
+        return f"{self.name}({', '.join(s)}) {self.help}\n{self.file}:{self.line}"
 
-def command(func):
-    meta = FnMeta(func)
-    commands[meta.name] = meta
 
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
+def globalcommand(name=None):
+    def decorator(func):
+        meta = FnMeta(func)
+        if name:
+            meta.name = name
+        commands[meta.name] = meta
 
-    return wrapper
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def localcommand(name=None):
+    def decorator(func):
+        meta = FnMeta(func)
+        if name:
+            meta.name = name
+        filename = str(Path(meta.file).parts[-1]).split(".")
+        meta.name = f"{filename[0]}.{meta.name}"
+        commands[meta.name] = meta
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 def r_listdir(dir):
@@ -79,61 +119,52 @@ def r_listdir(dir):
     o = []
     for i in os.listdir(dir):
         if os.path.isdir(os.path.join(dir, i)):
+            o.append(os.path.join(dir, i))
             o.extend(reversed(r_listdir(os.path.join(dir, i))))
         else:
             o.append(os.path.join(dir, i))
     return sorted(o, key=len, reverse=True)
 
 
-def inputcompleter(text: str, state: int):
+class InputCompleter:
     matches = []
-    full = readline.get_line_buffer()
-    try:
-        parsed = shlex(full)
-    except:
-        parsed = shlex(full + '"')
-    arg = full.count(" ") - 1
-    if len(parsed) == 0:
-        parsed.append("")
-    cmd = parsed[0]
-    parsed = parsed[-1]
-    if state == 0:
-        if arg == -1:
-            matches = [cmd for cmd in list(commands.keys()) if cmd.startswith(text)]
-            # matches.extend(difflib.get_close_matches(text,list(commands.keys()),n=len(commands.keys())))
-        if cmd in commands.keys():
-            if arg >= 0 and arg <= len(commands[cmd].args):
-                atype = commands[cmd].annotations[commands[cmd].args[arg]]
-                if atype == ct.Command:
-                    matches = [
-                        (f'"{cmd}"' if " " in cmd else f"{cmd}")
-                        for cmd in list(commands.keys())
-                        if cmd.startswith(text)
-                    ]
-                elif atype == ct.Buffer:
-                    matches = [
-                        (f'"{buf}"' if " " in buf else f"{buf}")
-                        for buf in list(buffers.keys())
-                        if buf.startswith(text)
-                    ]
-                elif atype == ct.File:
-                    matches = list(
-                        str(Path(file).relative_to(os.getcwd()))
-                        for file in r_listdir(os.getcwd())
-                        if str(Path(file).relative_to(os.getcwd())).startswith(text)
-                    )
-                elif atype == ct.Code:
-                    matches = [f'"{text}"']
 
-    matches = list(set(matches))  # remove duplicates
-    try:
-        return matches[state]
-    except Exception as e:
-        # print_exc()
-        return None
+    def completer(self, text: str, state: int):
+        full = readline.get_line_buffer()
+        try:
+            parsed = shlex(full)
+        except:
+            parsed = shlex(full + '"')  # fixes an error
+        arg = full.count(" ") - 1
+        if len(parsed) == 0:
+            parsed.append("")
+        cmd = parsed[0]
+        parsed = parsed[-1]
+        if state == 0:
+            if arg == -1:
+                self.matches = [
+                    cmd for cmd in list(commands.keys()) if cmd.startswith(text)
+                ]
+                # matches.extend(difflib.get_close_matches(text,list(commands.keys()),n=len(commands.keys())))
+            if cmd in commands.keys():
+                if arg >= 0 and arg <= len(commands[cmd].args):
+                    atype = commands[cmd].annotations[commands[cmd].args[arg]]
+                    if hasattr(atype, "complete"):
+                        self.matches = atype.complete(
+                            text
+                        )  # allows for customizable completions in modules
+
+        self.matches = list(set(self.matches))  # remove duplicates
+        try:
+            return self.matches[state]
+        except Exception as e:
+            # print_exc()
+            return None
 
 
 def getreltime(filename):
+    if not os.path.exists(filename):
+        return "Never"
     ts = os.path.getmtime(filename)
     now = datetime.datetime.now()
     dt = datetime.datetime.fromtimestamp(ts)
@@ -227,6 +258,15 @@ def highlight_code(code, filename):
 class ConfigClass:
     def exec(self, command, *args, **kwargs):
         commands[command](*args, **kwargs)
+
+
+def extendpromptvars(promptvars):
+    for i in modules:
+        if hasattr(i, "promptvars"):
+            for k, v in i.promptvars().items():
+                promptvars[k] = (
+                    v  # might not be the fastest approach but when has safe ever been meant for speed?
+                )
 
 
 config = ConfigClass()

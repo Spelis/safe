@@ -6,28 +6,35 @@ import completiontypes as ct
 import func
 
 
-@func.command
+@func.globalcommand("open")
 def openfile(filename: ct.File):
     """Open a file in current tab"""
     func.openfile(filename)
 
 
-@func.command
+@func.globalcommand("new")
 def newfile(filename: str):
     """Create a new tab and file"""
     func.openfile(filename, True)
 
 
-@func.command
+@func.globalcommand("save")
 def savefile(filename: str = None):
-    """Save the current file, optionally provide a filename to \"save as\" """
+    """Save the current buffer, optionally provide a filename to \"save as\" """
     buf = func.buffer()
+    if filename:
+        renamebuf(filename)
+        buf = func.buffer()
+    if buf.unnamed:
+        print("Please provide a filename")
+        return
     with open(buf.filename, "w") as f:
         f.write("\n".join(buf.buffer))
+        buf.saved = True
     print("Saved!")
 
 
-@func.command
+@func.globalcommand()
 def switchbuf(filename: ct.Buffer):
     """Switch buffers"""
     if filename in func.buffers.keys():
@@ -37,14 +44,14 @@ def switchbuf(filename: ct.Buffer):
         print(f"Buffers: {list(func.buffers.keys())}")
 
 
-@func.command
+@func.globalcommand()
 def listbuf():
     """List all buffers"""
     for k, v in func.buffers.items():
         print(f"{k}: {len(v.buffer)} lines")
 
 
-@func.command
+@func.globalcommand()
 def renamebuf(filename: ct.File):
     """Rename the current buffer"""
     buf: func.FileObject = copy(func.buffer())
@@ -56,7 +63,7 @@ def renamebuf(filename: ct.File):
     func.curbuf = filename
 
 
-@func.command
+@func.globalcommand()
 def close():
     """Close the current buffer"""
     del func.buffers[func.curbuf]
@@ -66,13 +73,13 @@ def close():
         func.curbuf = list(func.buffers.keys())[0]  # first buffer in the buffer list
 
 
-@func.command
+@func.globalcommand()
 def exit():
     """Exit all buffers and the program without saving"""
     sys.exit(0)
 
 
-@func.command
+@func.globalcommand()
 def cat(line: ct.LineNumber = 1, line2: ct.LineNumber = 0):
     """Print out file contents, optionally in a range or just a single line"""
     buf: func.FileObject = func.buffer()
@@ -88,7 +95,7 @@ def cat(line: ct.LineNumber = 1, line2: ct.LineNumber = 0):
         print(str(l + ln0 + 1) + " " * (len(str(len(buf.buffer))) - 1), i)
 
 
-@func.command
+@func.globalcommand()
 def edit(line: ct.LineNumber, value: str):
     """Edit a line"""
     buf = func.buffer()
@@ -96,7 +103,7 @@ def edit(line: ct.LineNumber, value: str):
     buf.saved = False
 
 
-@func.command
+@func.globalcommand()
 def insert(line: ct.LineNumber, value: str = ""):
     """Insert text at line"""
     buf = func.buffer()
@@ -107,8 +114,17 @@ def insert(line: ct.LineNumber, value: str = ""):
     buf.saved = False
 
 
-@func.command
+@func.globalcommand()
 def delete(line: ct.LineNumber, times: ct.LineNumber = 1):
     """Delete lines"""
     for _ in range(times):
         func.buffer().buffer.pop(line - 1)
+
+
+@func.globalcommand("ls")
+def listdir(path: ct.File = os.getcwd()):
+    for i in os.listdir(path):
+        if os.path.isdir(i):
+            print(f"{i}/")
+        else:
+            print(i)

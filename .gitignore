@@ -1,5 +1,6 @@
 __pycache__
-.vscode/settings.json
+.vscode
 .idea
 .venv
 safe
+kanbans.pkl

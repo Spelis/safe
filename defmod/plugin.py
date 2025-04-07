@@ -1,16 +1,20 @@
+import importlib
+import os
+import sys
 from difflib import get_close_matches
+from pathlib import Path
 
 import completiontypes as ct
 import func
 
 
-@func.command
+@func.globalcommand()
 def help(command: ct.Command = ""):
     """Help command. shows this message"""
     if not command:
         for i in func.commands.values():
             print(
-                "{} - {}:{}\n\t{}{}  {}".format(
+                "{} - {}:{}\n  {}{}  {}".format(
                     i.name,
                     i.file,
                     i.line,
@@ -23,7 +27,7 @@ def help(command: ct.Command = ""):
         try:
             i: func.FnMeta = func.commands[command]
             print(
-                "{} - {}:{}\n\t{}{}  {}".format(
+                "{} - {}:{}\n  {}{}  {}".format(
                     i.name,
                     i.file,
                     i.line,
@@ -41,6 +45,28 @@ def help(command: ct.Command = ""):
                 print(f"command '{command}' doesnt exist")
 
 
-# @func.command
-# def loadplugin(filename: ct.File):
-#    pass
+scriptpath = Path(*Path(__file__).parts[:-2])
+
+
+class Plugin(str):
+    """(str) Plugins (inside ./mod/ folder)"""
+
+    def complete(text):
+        return [
+            str(".".join(file.split(".")[:-1]))
+            for file in os.listdir(str(Path(scriptpath) / "mod"))
+            if file.startswith(text) and file.endswith(".py")
+        ]
+
+
+@func.globalcommand()
+def loadplugin(filename: Plugin):
+    """Load a module"""
+    spec = importlib.util.spec_from_file_location(
+        filename, f"{scriptpath}/mod/{filename}.py"
+    )
+    m = importlib.util.module_from_spec(spec)
+    sys.modules[filename] = m
+    spec.loader.exec_module(m)
+    globals().update({f"{filename}.{k}": v for k, v in m.__dict__.items()})
+    func.modules.append(m)

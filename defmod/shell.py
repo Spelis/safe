@@ -1,6 +1,6 @@
 import completiontypes as ct
 import func
-
+import os
 
 @func.globalcommand()
 def clear():

@@ -20,3 +20,13 @@ def debug(enabled: bool = None):
     if enabled is None:
         enabled = not func.debug
     print(("enabled" if enabled else "disabled") + " debug mode")
+
+@func.globalcommand()
+def cd(dir:str=None):
+    if dir == None:
+        print(os.getcwd())
+        return
+    if os.path.exists(dir):
+        os.chdir(dir)
+    else:
+        print("Invalid directory.")

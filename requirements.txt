@@ -2,3 +2,4 @@ Pygments
 pyreadline
 black
 isort
+numexpr

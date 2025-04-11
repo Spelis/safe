@@ -119,12 +119,3 @@ def delete(line: ct.LineNumber, times: ct.LineNumber = 1):
     """Delete lines"""
     for _ in range(times):
         func.buffer().buffer.pop(line - 1)
-
-
-@func.globalcommand("ls")
-def listdir(path: ct.File = os.getcwd()):
-    for i in os.listdir(path):
-        if os.path.isdir(i):
-            print(f"{i}/")
-        else:
-            print(i)

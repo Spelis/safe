@@ -30,3 +30,13 @@ def cd(dir:str=None):
         os.chdir(dir)
     else:
         print("Invalid directory.")
+
+@func.globalcommand("ls")
+def listdir(path: ct.File = None):
+    if path is None:
+        path = os.getcwd()
+    for i in os.listdir(path):
+        if os.path.isdir(i):
+            print(f"{i}/")
+        else:
+            print(i)

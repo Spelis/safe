@@ -38,6 +38,10 @@ A really stupid text editor with a shell like environment to edit files just as 
 * Added example plugins: Kanban and a template
 * `ls` command (woah, revolutionary!)
 
+## v2.1.1 - Small update (cd command and calculator module)
+* NOTE: Calculator module is coming soon.
+* moved ls to defmod/shell.py
+* added cd command (might be a little broken hehe)
 
 # legacy changelog
 

@@ -10,4 +10,4 @@ func.config.exec("alias", "cls", "clear")
 # func.config.exec("kanban.create", "Hello")
 
 # calculator plugin example
-func.config.exec("loadplugin", "calculator")
+# func.config.exec("loadplugin", "calculator")

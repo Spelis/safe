@@ -1,6 +1,8 @@
+import os
+
 import completiontypes as ct
 import func
-import os
+
 
 @func.globalcommand()
 def clear():
@@ -21,8 +23,9 @@ def debug(enabled: bool = None):
         enabled = not func.debug
     print(("enabled" if enabled else "disabled") + " debug mode")
 
+
 @func.globalcommand()
-def cd(dir:str=None):
+def cd(dir: str = None):
     if dir == None:
         print(os.getcwd())
         return
@@ -31,12 +34,13 @@ def cd(dir:str=None):
     else:
         print("Invalid directory.")
 
+
 @func.globalcommand("ls")
 def listdir(path: ct.File = None):
     if path is None:
         path = os.getcwd()
     for i in os.listdir(path):
         if os.path.isdir(i):
-            print(f"{i}/")
+            print(f"\x1b[32m{i}/\x1b[0m")
         else:
             print(i)

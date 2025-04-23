@@ -1,6 +1,7 @@
 import random
 
-import func
+import func,os
+from pathlib import Path
 
 
 class LineNumber(int):
@@ -14,11 +15,31 @@ class File(str):
     """(str) Any file anywhere"""
 
     def complete(text):
-        return [
-            str(func.Path(file).relative_to(func.os.getcwd()))
-            for file in func.r_listdir(func.os.getcwd())
-            if str(func.Path(file).relative_to(func.os.getcwd())).startswith(text)
-        ]
+        """Generate directory-aware path completions"""
+        # Split into base directory and partial filename
+        base_dir, partial = os.path.split(text)
+        base_dir = base_dir or '.'  # Use current directory if empty
+        
+        try:
+            # List directory contents
+            full_dir = Path(base_dir).resolve()
+            matches = []
+            
+            for item in os.listdir(full_dir):
+                item_path = full_dir / item
+                # Match items starting with partial
+                if item.startswith(partial):
+                    # Build the full matched path
+                    matched_path = os.path.join(base_dir, item)
+                    # Add slash for directories
+                    if item_path.is_dir():
+                        matched_path += os.sep
+                    matches.append(matched_path)
+            
+            return matches
+            
+        except (FileNotFoundError, NotADirectoryError):
+            return []
 
 
 class Buffer(str):

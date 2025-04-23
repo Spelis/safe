@@ -114,18 +114,6 @@ def localcommand(name=None):
     return decorator
 
 
-def r_listdir(dir):
-    """Recurive Directory Listing"""
-    o = []
-    for i in os.listdir(dir):
-        if os.path.isdir(os.path.join(dir, i)):
-            o.append(os.path.join(dir, i))
-            o.extend(reversed(r_listdir(os.path.join(dir, i))))
-        else:
-            o.append(os.path.join(dir, i))
-    return sorted(o, key=len, reverse=True)
-
-
 class InputCompleter:
     matches = []
 
